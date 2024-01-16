@@ -1,0 +1,9 @@
+version: "3.7"
+services:
+  keycloak:
+    image: jboss/keycloak:15.0.2
+    environment:
+      KEYCLOAK_USER: keycloak
+      KEYCLOAK_PASSWORD: keycloak
+    ports:
+      - 8180:8080
