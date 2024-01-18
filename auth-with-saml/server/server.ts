@@ -1,6 +1,6 @@
 import express from "express";
 import path from "path";
-import oidcAuthRouter, { discoverOidcIssuer } from "./auth-with-oidc";
+import samlAuthRouter from "./auth-with-saml";
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 // POSTパラメータの JSON文字列 → JSオブジェクト へ変換してくれる
 app.use(express.json());
 
-app.use(oidcAuthRouter);
+app.use(samlAuthRouter);
 
 app.use(express.static(path.join(__dirname, "../public")));
 
@@ -19,7 +19,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(port, async () => {
-  await discoverOidcIssuer();
-  console.log("Discovered OIDC issuer.");
   console.log(`Server is running on port ${port}`);
 });

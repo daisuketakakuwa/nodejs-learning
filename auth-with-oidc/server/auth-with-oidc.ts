@@ -1,11 +1,11 @@
-import express from 'express';
-import passport from 'passport';
-import expressSession from 'express-session';
-import { Issuer, Strategy, TokenSet, UserinfoResponse } from 'openid-client';
+import express from "express";
+import expressSession from "express-session";
+import { Issuer, Strategy, TokenSet, UserinfoResponse } from "openid-client";
+import passport from "passport";
 
 const oidcAuthRouter = express.Router();
 
-const OIDC_ISSUER = 'http://localhost:8180';
+const OIDC_ISSUER = "http://localhost:8180";
 
 // アプリ起動時にKeycloackと接続する。
 let oidcIssuer: Issuer;
@@ -26,21 +26,21 @@ const setupOidcIssuer = async (req, res, next) => {
   const { Client } = oidcIssuer;
   const oidcClient = new Client({
     // Keycloak側で作成
-    client_id: 'auth-with-oidc',
-    client_secret: '8b4b9d1f-8e26-4c6c-8f0e-8a1277a3e787',
+    client_id: "auth-with-oidc",
+    client_secret: "8b4b9d1f-8e26-4c6c-8f0e-8a1277a3e787",
     // 認可エンドポイント
     authorization_endpoint: `${OIDC_ISSUER}/auth/realms/user/protocol/openid-connect/auth`,
     // Tokenエンドポイント
     token_endpoint: `${OIDC_ISSUER}/auth/realms/user/protocol/openid-connect/token`,
     userinfo_endpoint: `${OIDC_ISSUER}/auth/realms/user/protocol/openid-connect/userinfo`,
-    redirect_uris: ['http://localhost:4000/auth/callback'],
+    redirect_uris: ["http://localhost:4000/auth/callback"],
     // 認可コードフロー
-    response_types: ['code'],
+    response_types: ["code"],
   });
 
   // passportに openid-connect を利用して認証するよう設定
   passport.use(
-    'oidc',
+    "oidc",
     new Strategy(
       {
         client: oidcClient,
@@ -49,7 +49,7 @@ const setupOidcIssuer = async (req, res, next) => {
         // - デジタル署名のような役割
         // - Tokenエンドポイント@Keycloak側で署名の検証が必要
         // usePKCE: true,
-        sessionKey: 'test-session-key',
+        sessionKey: "test-session-key",
       },
       // Tokenエンドポイントよりレスポンスが返ってきたらこの関数が呼び出される。
       async (tokenset: TokenSet, userinfo: UserinfoResponse, done: (err: any, user?: any) => void) => {
@@ -62,8 +62,8 @@ const setupOidcIssuer = async (req, res, next) => {
           ...userinfo,
           // claims: jwt_decode(tokenset.access_token)
         });
-      },
-    ),
+      }
+    )
   );
 
   // Expressのappオブジェクトに格納 -> いつでも req.appオブジェクトで参照可能。
@@ -78,10 +78,10 @@ oidcAuthRouter.use(passport.initialize());
 // 2. passportにセッション設定 ※先にexpress-sessionの設定
 oidcAuthRouter.use(
   expressSession({
-    secret: 'use-this-secret-to-hash',
+    secret: "use-this-secret-to-hash",
     resave: false,
     saveUninitialized: false,
-  }),
+  })
 );
 oidcAuthRouter.use(passport.session());
 // 3. IdPとの接続確立
@@ -96,25 +96,25 @@ passport.deserializeUser((obj: any, done) => {
   done(null, obj);
 });
 
-oidcAuthRouter.get('/login', passport.authenticate('oidc'));
+oidcAuthRouter.get("/login", passport.authenticate("oidc"));
 
-oidcAuthRouter.get('/auth/callback', (req, res, next) => {
-  console.log('captured callback.');
+oidcAuthRouter.get("/auth/callback", (req, res, next) => {
+  console.log("captured callback.");
   // 認可コードフローの場合、Tokenエンドポイントへリクエスト
-  return passport.authenticate('oidc', {
-    successRedirect: '/',
-    failureRedirect: '/',
+  return passport.authenticate("oidc", {
+    successRedirect: "/",
+    failureRedirect: "/",
   })(req, res, next);
 });
 
 //　!!!! 未ログイン状態でCallされるAPIはこれより後ろに !!!!!!
-oidcAuthRouter.use('*', (req, res, next) => {
+oidcAuthRouter.use("*", (req, res, next) => {
   console.log(`authenticated: ${req.isAuthenticated()}`);
   if (req.isAuthenticated()) {
     return next();
   }
 
-  return passport.authenticate('oidc')(req, res, next);
+  return passport.authenticate("oidc")(req, res, next);
 });
 
 export default oidcAuthRouter;
