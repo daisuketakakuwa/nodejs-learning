@@ -55,6 +55,7 @@ const setupOidcIssuer = async (req, res, next) => {
       async (tokenset: TokenSet, userinfo: UserinfoResponse, done: (err: any, user?: any) => void) => {
         console.log(`token generated: ${tokenset.access_token}`);
         done(null, {
+          // APIにはAccessトークンを送信する
           accessToken: tokenset.access_token,
           idToken: tokenset.id_token,
           refreshToken: tokenset.refresh_token,
@@ -97,15 +98,9 @@ passport.deserializeUser((obj: any, done) => {
 
 oidcAuthRouter.get('/login', passport.authenticate('oidc'));
 
-// OIDCで認証OKとなった後にリダイレクトされる場所
-// 1. 認可コードフロー -> ここで認可コードを利用して TokenエンドポイントをCallする？
-// 2. Implicitフロー  -> ？？？？？
-// でここの意味合いが変わってくる？
-
-// 認可リクエスト with 認可コード
 oidcAuthRouter.get('/auth/callback', (req, res, next) => {
-  // ここでTokenエンドポイントをCallするんだろうな
   console.log('captured callback.');
+  // 認可コードフローの場合、Tokenエンドポイントへリクエスト
   return passport.authenticate('oidc', {
     successRedirect: '/',
     failureRedirect: '/',

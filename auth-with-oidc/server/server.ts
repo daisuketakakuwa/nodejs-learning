@@ -5,8 +5,6 @@ import oidcAuthRouter, { discoverOidcIssuer } from './auth-with-oidc';
 const app = express();
 const port = process.env.PORT || 4000;
 
-// app.set('trust proxy', 1);
-
 app.use(oidcAuthRouter);
 
 app.use(express.static(path.join(__dirname, '../public')));
