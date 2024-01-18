@@ -68,8 +68,40 @@ ResourceServer->Browser:ツイート完了👍
 
 
 ### Implicitフロー
+認可コードフローと比較すると<br>
+△ Browser側にAccessトークンが直接わたってしまう。<br>
+△ Refreshトークンがないため、期限が切れるたびに再認証を行う必要がある。<br>
+△ state検証,nonce検証,PKCE検証 が行えない -> Security的に弱い。<br><br>
 
+以上を踏まえて、**OAuth2.0, OIDCともに認可コードフローが推奨されている✅**
 
+<img src="https://github.com/daisuketakakuwa/nodejs-learning/assets/66095465/5b895245-af23-410f-9b13-4ee3f9182027" width="650px">
+
+<details>
+<summary>sequencediagram scripts</summary>
+title 【OAuth2.0/Implicitフロー】ClientAppよりTwitterAPIを利用するための手順
+
+participant Browser
+participant ClientApp
+fontawesome f099 AuthorizationServer #1da1f2
+fontawesome f099 ResourceServer #1da1f2
+
+Browser->ClientApp:Twitterr連携で投稿したい
+note over ClientApp:まだAccessToken発行してないか、OK
+ClientApp->Browser: 認可リクエスト【**response_type=code**】
+Browser->AuthorizationServer:認可リクエスト(clientId,state)
+note over AuthorizationServer:**認可エンドポイント**
+AuthorizationServer->Browser:Twitter連携OK？
+Browser->AuthorizationServer:Twitter連携OK！
+AuthorizationServer->Browser:**Accessトークン**
+Browser->ResourceServer:TwitterAPIコール with Accessトークン in Authorizationヘッダ
+note over ResourceServer:Accessトークン検証
+ResourceServer->AuthorizationServer:POST Accessトークン送信
+note over AuthorizationServer:**Introspectionエンドポイント**\nAccessトークンの有効性を検証
+AuthorizationServer->ResourceServer:トークン有効だよ👍
+note over ResourceServer:Twitter投稿処理
+ResourceServer->Browser:ツイート完了👍
+</details>
 
 ## 3. OIDCの認証認可フロー
 ✅認可コードフロー/ImplicitフローはOAuth2.0より存在する概念で、OIDCでも同様に利用する。<br>
@@ -106,11 +138,16 @@ note over ClientApp:req.userにUser情報格納＆認証済👍
 ClientApp->Browser:TOP画面へリダイレクト
 </details>
 
-
 ## 4. state,nonce,PKCE
+
+
 
 
 
 ## MEMO
 ✅OAuth2.0から 認可コードフロー/Implicitフロー という概念がある。<br>
-✅今まで開発してきたAPI側のJWT検証は【アクセストークン】に対してやっていた。<br>
+✅APIに投げて検証するのは【アクセストークン】<br>
+👉認証リクエスト -> IDトークン 要求（response_type=id_token）<br>
+👉認可リクエスト -> Accessトークン 要求（response_type=token）<br>
+👉認証認可リクエスト -> IDトークン＋Accessトークン 要求（response_type=id_token token）<br>
+
