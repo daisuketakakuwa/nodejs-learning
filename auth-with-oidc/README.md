@@ -4,6 +4,14 @@
 3. OIDCの認証認可フロー
 4. state,nonce,PKCE
 
+## MEMO
+✅OAuth2.0から 認可コードフロー/Implicitフロー という概念がある。<br>
+✅APIに投げて検証するのは【アクセストークン】<br>
+👉認証リクエスト -> IDトークン 要求（response_type=id_token）<br>
+👉認可リクエスト -> Accessトークン 要求（response_type=token）<br>
+👉認証認可リクエスト -> IDトークン＋Accessトークン 要求（response_type=id_token token）<br>
+✅**セッションもトークンも有効期限を短くして、頻繁に再生成した方がSecurity的にGood👍**
+
 ## 1. OAuth2.0の認可フロー
 ✅ClientAppが、外部APIを利用するためにアクセストークンを発行して認可してもらうもの。
 
@@ -139,15 +147,21 @@ ClientApp->Browser:TOP画面へリダイレクト
 </details>
 
 ## 4. state,nonce,PKCE
+参考： https://dev.classmethod.jp/articles/openid-connect-state-nonce-pkce/
+
+### stateパラメータ - CSRF攻撃防止
+・悪意Aさんの認可コードリクエストURLを 善意Aさんに踏まえる。<br>
+・善意Aさんは 悪意Aさんとしてログインした状態で個人情報など入力してしまう。<br>
+・**善意Aさんしか知れない「善意Aさんのセッションにひもづく** 識別子」を必須とし、<br>
+　**Tokenリクエスト前にAppServerにたどりついたところ**で「stateパラメータ」と「AppServerのセッション」の比較を行う。
+
+### nonceパラメータ - リプレイアタック(Token再利用)の防止
+・number used once(一意の値) <br>
+・**IDトークンのclaims内**に格納するパラメータ。
+・stateパラメータと同じく、善意Aさんしか知れないセッションに紐づく識別子。
+・**APIリクエストするたびに**、ClientAppでnonceパラメータが善意Aさんと紐づくものかどうか検証する
+
+### PKCE - 認可コードが悪意Aさんに奪われても大丈夫なように。
 
 
-
-
-
-## MEMO
-✅OAuth2.0から 認可コードフロー/Implicitフロー という概念がある。<br>
-✅APIに投げて検証するのは【アクセストークン】<br>
-👉認証リクエスト -> IDトークン 要求（response_type=id_token）<br>
-👉認可リクエスト -> Accessトークン 要求（response_type=token）<br>
-👉認証認可リクエスト -> IDトークン＋Accessトークン 要求（response_type=id_token token）<br>
 
