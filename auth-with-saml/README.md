@@ -1,26 +1,6 @@
-# SAML認証
-## MEMO
-✅ トークンの概念はない。<br>
-✅ IdP経由で認証完了したら、セッションをもって認証済状態をKEEPする。<br>
-✅ SAMLリクエスト/レスポンスは、BASE64エンコードされている。
-
-<img src="https://github.com/daisuketakakuwa/nodejs-learning/assets/66095465/887afc4a-bd1b-44d2-93de-1cea16476256" width="650px">
-
-<details>
-<summary>sequencediagram scripts</summary>
-Browser->ClientApp:未認証でアクセス
-note over ClientApp:未認証の場合IdPへSAMLリクエスト
-ClientApp->Browser:SAMLリクエスト
-Browser->IdP:302 SAMLリクエスト
-IdP->Browser:ID/PW要求
-Browser->IdP:ID/PW入力
-note over IdP:SAMLレスポンス作成(**🔒秘密鍵で署名する**)
-IdP->Browser:200 SAMLレスポンス
-note over Browser:ScriptでPOST /auth/callback実行
-Browser->ClientApp:POST /auth/callback with SAMLレスポンス
-note over ClientApp:SAMLレスポンス検証\n→**🔒公開鍵で署名検証**\n→ 検証OKだったらリダイレクト
-ClientApp->Browser:TOPページへリダイレクト
-</details>
+## SAMLをNode.jsで検証してみる
+- SAMLの概念レベルの話は[learning-stack/knowledge/auth/003. SAML.md](https://github.com/daisuketakakuwa/learning-stack/blob/main/knowledge/auth/003.%20SAML.md)でまとめてます。
+- ここでは**具体的な技術（passport × passport-saml × IdPとしてKeycloak）を用いたSAMLに関する検証**になります。
 
 ## passport-saml ✕ Keycloak疎通メモ
 - Keycloakで`Client Signature Required`はfalseにする。<br>
